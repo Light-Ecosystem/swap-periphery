@@ -141,6 +141,7 @@ describe('fee-on-transfer tokens', () => {
     router = fixture.router02
 
     DTT = await deployContract(wallet, DeflatingERC20, [expandTo18Decimals(10000)])
+    await fixture.approvedTokenManager.approveToken(DTT.address, true)
 
     // make a DTT<>WETH pair
     await fixture.factoryV2.createPair(DTT.address, WETH.address)
@@ -327,6 +328,8 @@ describe('fee-on-transfer tokens: reloaded', () => {
 
     DTT = await deployContract(wallet, DeflatingERC20, [expandTo18Decimals(10000)])
     DTT2 = await deployContract(wallet, DeflatingERC20, [expandTo18Decimals(10000)])
+    await fixture.approvedTokenManager.approveToken(DTT.address, true)
+    await fixture.approvedTokenManager.approveToken(DTT2.address, true)
 
     // make a DTT<>WETH pair
     await fixture.factoryV2.createPair(DTT.address, DTT2.address)

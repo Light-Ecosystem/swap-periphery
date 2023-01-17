@@ -60,7 +60,6 @@ async function logPosition(names: string[], addrs: string[], tokens: Contract[])
 }
 
 describe('WalkThrough', () => {
-  // console.info(expandTo18Decimals(0.0025))
   for (const routerVersion of Object.keys(RouterVersion)) {
     const provider = new MockProvider({
       hardfork: 'istanbul',
@@ -94,9 +93,6 @@ describe('WalkThrough', () => {
 
     describe(routerVersion, () => {
       it('should add liquidity, mint and remove liquidity', async () => {
-        // router.on('Sync', msg => {
-        //   console.info(`received msg: ${msg}`)
-        // })
         pair.on('Sync', (reserver0, reserver1) => {
           console.info(
             `received msg: Sync(${(Math.round(FixedNumber.fromValue(reserver0, 18).toUnsafeFloat()) * 1000) /
@@ -176,7 +172,11 @@ describe('WalkThrough', () => {
           )
           // check lisa has received about 10 liquidity token
           // the MINIMUM_LIQUIDITY is a tiny amount locked from the first liquidity provider
-          console.info(`lisa received ${await pair.balanceOf(lisa.address)} liquidity token`)
+          console.info(
+            `lisa received ${Math.round(
+              FixedNumber.fromValue(await pair.balanceOf(lisa.address), 18).toUnsafeFloat() * 1000
+            ) / 1000} liquidity token`
+          )
         }
 
         {
@@ -225,7 +225,11 @@ describe('WalkThrough', () => {
           // after lisa and lily adding liquidity,
           // now lisa owns 10 liquidity tokens, lily owns the rest 100 liquidity token.
           // the total supply is 110 tokens, lisa owns 1/11 = 9.0909%, and lily owns 10/11 = 90.9090%
-          console.info(`lily received ${await pair.balanceOf(lily.address)} liquidity token`)
+          console.info(
+            `lily received ${Math.round(
+              FixedNumber.fromValue(await pair.balanceOf(lily.address), 18).toUnsafeFloat() * 1000
+            ) / 1000} liquidity token`
+          )
         }
 
         for (var i = 0; i < 1; i++) {

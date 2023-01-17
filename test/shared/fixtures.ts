@@ -6,6 +6,7 @@ import { expandTo18Decimals } from './utilities'
 
 import UniswapV2Factory from '@uniswap/v2-core/build/UniswapV2Factory.json'
 import IUniswapV2Pair from '@uniswap/v2-core/build/IUniswapV2Pair.json'
+import ApprovedTokenManager from '@uniswap/v2-core/build/ApprovedTokenManager.json'
 
 import ERC20 from '../../build/ERC20.json'
 import WETH9 from '../../build/WETH9.json'
@@ -35,6 +36,7 @@ interface V2Fixture {
   WETHExchangeV1: Contract
   pair: Contract
   WETHPair: Contract
+  approvedTokenManager: Contract
 }
 
 export async function v2Fixture(provider: Web3Provider, [wallet]: Wallet[]): Promise<V2Fixture> {
@@ -81,6 +83,9 @@ export async function v2Fixture(provider: Web3Provider, [wallet]: Wallet[]): Pro
   const WETHPairAddress = await factoryV2.getPair(WETH.address, WETHPartner.address)
   const WETHPair = new Contract(WETHPairAddress, JSON.stringify(IUniswapV2Pair.abi), provider).connect(wallet)
 
+  // deploy approvedTokenManager
+  const approvedTokenManager = await deployContract(wallet, ApprovedTokenManager, [], overrides)
+
   return {
     token0,
     token1,
@@ -95,6 +100,7 @@ export async function v2Fixture(provider: Web3Provider, [wallet]: Wallet[]): Pro
     migrator,
     WETHExchangeV1,
     pair,
-    WETHPair
+    WETHPair,
+    approvedTokenManager
   }
 }
