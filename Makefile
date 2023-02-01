@@ -5,8 +5,10 @@ setup:
 	yarn --cwd ../v2-core compile
 	yarn --cwd ../v2-core link
 	yarn link @uniswap/v2
+	cp .env.ts.example .env.ts
 
 all:
 	yarn clean
 	yarn compile
 	yarn test -g WalkThrough
+	yarn run deploy
