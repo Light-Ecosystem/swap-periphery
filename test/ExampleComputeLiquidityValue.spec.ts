@@ -249,7 +249,7 @@ describe('ExampleComputeLiquidityValue', () => {
             100,
             expandTo18Decimals(5)
           )
-        ).to.eq('12728')
+        ).to.eq('12750')
       })
 
       it('gas higher price', async () => {
@@ -261,7 +261,7 @@ describe('ExampleComputeLiquidityValue', () => {
             105,
             expandTo18Decimals(5)
           )
-        ).to.eq('13501')
+        ).to.eq('13523')
       })
 
       it('gas lower price', async () => {
@@ -273,7 +273,7 @@ describe('ExampleComputeLiquidityValue', () => {
             95,
             expandTo18Decimals(5)
           )
-        ).to.eq('13546')
+        ).to.eq('13568')
       })
 
       describe('after a swap', () => {
@@ -380,7 +380,7 @@ describe('ExampleComputeLiquidityValue', () => {
             100,
             expandTo18Decimals(5)
           )
-        ).to.eq('16939')
+        ).to.eq('16983')
       })
 
       it('gas higher price', async () => {
@@ -392,7 +392,7 @@ describe('ExampleComputeLiquidityValue', () => {
             105,
             expandTo18Decimals(5)
           )
-        ).to.eq('18476')
+        ).to.eq('18520')
       })
 
       it('gas lower price', async () => {
@@ -404,7 +404,7 @@ describe('ExampleComputeLiquidityValue', () => {
             95,
             expandTo18Decimals(5)
           )
-        ).to.eq('18407')
+        ).to.eq('18451')
       })
 
       describe('after a swap', () => {
