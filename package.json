@@ -43,7 +43,11 @@
     "pretest": "yarn compile",
     "test": "mocha",
     "prepublishOnly": "yarn test",
-    "deploy": "ts-node scripts/deploy.ts"
+    "preflatten": "yarn compile",
+    "flatten": "waffle flatten",
+    "predeploy": "yarn flatten",
+    "deploy": "ts-node scripts/deploy.ts",
+    "verify": "ts-node scripts/verify.ts"
   },
   "license": "GPL-3.0-or-later"
 }
