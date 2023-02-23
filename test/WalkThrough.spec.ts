@@ -220,7 +220,8 @@ describe('WalkThrough', () => {
           {
             const tokenABalance = await tokenA.balanceOf(tim.address)
             const [reserve0, reserve1] = await pair.getReserves()
-            const amountOutMin = await router.getAmountOut(tokenABalance, reserve0, reserve1)
+            const feeRateNumerator = await pair.getFeeRateNumerator()
+            const amountOutMin = await router.getAmountOut(tokenABalance, reserve0, reserve1, feeRateNumerator)
             console.info(
               `tim swap ${Math.round(FixedNumber.fromValue(tokenABalance, 18).toUnsafeFloat() * 1000) / 1000} tokenA`
             )
@@ -245,7 +246,8 @@ describe('WalkThrough', () => {
           {
             const tokenBBalance = await tokenB.balanceOf(tim.address)
             const [reserve0, reserve1] = await pair.getReserves()
-            const amountOutMin = await router.getAmountOut(tokenBBalance, reserve1, reserve0)
+            const feeRateNumerator = await pair.getFeeRateNumerator()
+            const amountOutMin = await router.getAmountOut(tokenBBalance, reserve1, reserve0, feeRateNumerator)
             console.info(
               `tim swap ${Math.round(FixedNumber.fromValue(tokenBBalance, 18).toUnsafeFloat() * 1000) / 1000} tokenB`
             )

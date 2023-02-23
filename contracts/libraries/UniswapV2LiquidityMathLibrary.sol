@@ -12,26 +12,32 @@ import './UniswapV2Library.sol';
 // in terms of the underlying tokens
 library UniswapV2LiquidityMathLibrary {
     using SafeMath for uint256;
+    uint32 public constant FeeRateDenominator = 1000;
 
     // computes the direction and magnitude of the profit-maximizing trade
     function computeProfitMaximizingTrade(
         uint256 truePriceTokenA,
         uint256 truePriceTokenB,
         uint256 reserveA,
-        uint256 reserveB
+        uint256 reserveB,
+        uint32 feeRateNumerator
     ) pure internal returns (bool aToB, uint256 amountIn) {
         aToB = FullMath.mulDiv(reserveA, truePriceTokenB, reserveB) < truePriceTokenA;
 
         uint256 invariant = reserveA.mul(reserveB);
-
+        FullMath.mulDiv(
+                invariant.mul(FeeRateDenominator),
+                aToB ? truePriceTokenA : truePriceTokenB,
+                (aToB ? truePriceTokenB : truePriceTokenA).mul(feeRateNumerator)
+        );
         uint256 leftSide = Babylonian.sqrt(
             FullMath.mulDiv(
-                invariant.mul(1000),
+                invariant.mul(FeeRateDenominator),
                 aToB ? truePriceTokenA : truePriceTokenB,
-                (aToB ? truePriceTokenB : truePriceTokenA).mul(997)
+                (aToB ? truePriceTokenB : truePriceTokenA).mul(feeRateNumerator)
             )
         );
-        uint256 rightSide = (aToB ? reserveA.mul(1000) : reserveB.mul(1000)) / 997;
+        uint256 rightSide = (aToB ? reserveA.mul(FeeRateDenominator) : reserveB.mul(FeeRateDenominator)) / feeRateNumerator;
 
         if (leftSide < rightSide) return (false, 0);
 
@@ -52,8 +58,10 @@ library UniswapV2LiquidityMathLibrary {
 
         require(reserveA > 0 && reserveB > 0, 'UniswapV2ArbitrageLibrary: ZERO_PAIR_RESERVES');
 
+
+        uint32 feeRateNumerator = IUniswapV2Pair(UniswapV2Library.pairFor(factory, tokenA, tokenB)).getFeeRateNumerator();
         // then compute how much to swap to arb to the true price
-        (bool aToB, uint256 amountIn) = computeProfitMaximizingTrade(truePriceTokenA, truePriceTokenB, reserveA, reserveB);
+        (bool aToB, uint256 amountIn) = computeProfitMaximizingTrade(truePriceTokenA, truePriceTokenB, reserveA, reserveB, feeRateNumerator);
 
         if (amountIn == 0) {
             return (reserveA, reserveB);
@@ -61,11 +69,11 @@ library UniswapV2LiquidityMathLibrary {
 
         // now affect the trade to the reserves
         if (aToB) {
-            uint amountOut = UniswapV2Library.getAmountOut(amountIn, reserveA, reserveB);
+            uint amountOut = UniswapV2Library.getAmountOut(amountIn, reserveA, reserveB, feeRateNumerator);
             reserveA += amountIn;
             reserveB -= amountOut;
         } else {
-            uint amountOut = UniswapV2Library.getAmountOut(amountIn, reserveB, reserveA);
+            uint amountOut = UniswapV2Library.getAmountOut(amountIn, reserveB, reserveA, feeRateNumerator);
             reserveB += amountIn;
             reserveA -= amountOut;
         }

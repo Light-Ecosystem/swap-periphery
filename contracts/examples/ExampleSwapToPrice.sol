@@ -43,9 +43,11 @@ contract ExampleSwapToPrice {
         uint256 amountIn;
         {
             (uint256 reserveA, uint256 reserveB) = UniswapV2Library.getReserves(factory, tokenA, tokenB);
+            uint32 feeRateNumerator = UniswapV2Library.getFeeRateNumerator(factory, tokenA, tokenB);
             (aToB, amountIn) = UniswapV2LiquidityMathLibrary.computeProfitMaximizingTrade(
                 truePriceTokenA, truePriceTokenB,
-                reserveA, reserveB
+                reserveA, reserveB,
+                feeRateNumerator
             );
         }
 
