@@ -56,7 +56,7 @@ library UniswapV2LiquidityMathLibrary {
         // first get reserves before the swap
         (reserveA, reserveB) = UniswapV2Library.getReserves(factory, tokenA, tokenB);
 
-        require(reserveA > 0 && reserveB > 0, 'UniswapV2ArbitrageLibrary: ZERO_PAIR_RESERVES');
+        require(reserveA > 0 && reserveB > 0, 'HopeSwapArbitrageLibrary: ZERO_PAIR_RESERVES');
 
 
         uint32 feeRateNumerator = IUniswapV2Pair(UniswapV2Library.pairFor(factory, tokenA, tokenB)).getFeeRateNumerator();
