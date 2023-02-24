@@ -6,7 +6,7 @@ import "./SafeMath.sol";
 
 library UniswapV2Library {
     using SafeMath for uint;
-    uint32 public constant FeeRateDenominator= 1000;
+    uint32 public constant FeeRateDenominator= 10000;
 
     // returns sorted token addresses, used to handle return values from pairs sorted in this order
     function sortTokens(address tokenA, address tokenB) internal pure returns (address token0, address token1) {
@@ -22,7 +22,7 @@ library UniswapV2Library {
                 hex'ff',
                 factory,
                 keccak256(abi.encodePacked(token0, token1)),
-                hex'ea0cd98ebfd8798d92d2cba52e4fd3ac3a8dff3641ea0b26fe52654c34881f79' // init code hash
+                hex'84618a2de92892901297556aa75b6ea5bd67750de55b9a03873883efdcb72bad' // init code hash
             ))));
     }
 

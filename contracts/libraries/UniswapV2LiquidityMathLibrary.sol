@@ -12,7 +12,7 @@ import './UniswapV2Library.sol';
 // in terms of the underlying tokens
 library UniswapV2LiquidityMathLibrary {
     using SafeMath for uint256;
-    uint32 public constant FeeRateDenominator = 1000;
+    uint32 public constant FeeRateDenominator = 10000;
 
     // computes the direction and magnitude of the profit-maximizing trade
     function computeProfitMaximizingTrade(
