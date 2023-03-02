@@ -21,6 +21,8 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
     }
 
     constructor(address _factory, address _WETH) public {
+        require(_factory!=address(0), "HopeSwapRouter: ZERO_ADDRESS");
+        require(_WETH!=address(0), "HopeSwapRouter: ZERO_ADDRESS");
         factory = _factory;
         WETH = _WETH;
     }
