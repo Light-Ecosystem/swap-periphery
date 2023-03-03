@@ -65,6 +65,7 @@ async function main() {
       ApprovedTokenManager.metadata,
       contractMap[key].Source
     )
+    await new Promise(resolve => setTimeout(resolve, 1000))
   })
 }
 

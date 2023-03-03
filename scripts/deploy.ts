@@ -1,9 +1,10 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { Wallet, Contract, ContractFactory } from 'ethers'
-import { TransactionResponse, JsonRpcProvider } from 'ethers/providers'
+import { TransactionResponse, JsonRpcProvider, TransactionReceipt } from 'ethers/providers'
 import { bigNumberify, BigNumber, defaultAbiCoder } from 'ethers/utils'
 import UniswapV2Factory from '@uniswap/v2-core/build/UniswapV2Factory.json'
+import UniswapV2Pair from '@uniswap/v2-core/build/UniswapV2Pair.json'
 import IUniswapV2Pair from '@uniswap/v2-core/build/IUniswapV2Pair.json'
 import ApprovedTokenManager from '@uniswap/v2-core/build/ApprovedTokenManager.json'
 import * as env from '../.env'
@@ -36,6 +37,7 @@ async function main() {
     .then(async (c: Contract) => {
       return await c.deployed()
     })
+  console.info('\taddress: ', approvedTokenManager.address)
   contractMap.set('ApprovedTokenManager', {
     Address: approvedTokenManager.address,
     Source: fs.readFileSync('node_modules/@uniswap/v2-core/flatten/ApprovedTokenManager.sol').toString('utf8'),
@@ -62,19 +64,19 @@ async function main() {
           await tx.wait()
         })
         .catch((err: Error) => {
-          console.info('failed to approve token ${list[i]}: ', err)
+          console.info('\tfailed to approve token ${list[i]}: ', err)
         })
       await approvedTokenManager
         .isApprovedToken(list[i])
         .then((success: boolean) => {
           if (success) {
-            console.info(`approved token ${list[i]} `)
+            console.info(`\taddress: ${list[i]} `)
           } else {
-            console.info(`failed to approve token ${list[i]} `)
+            console.info(`\tfailed to approve token ${list[i]} `)
           }
         })
         .catch((err: Error) => {
-          console.info(`failed to fetch token approved status for ${list[i]}: `, err)
+          console.info(`\tfailed to fetch token approved status for ${list[i]}: `, err)
         })
     }
   }
@@ -86,6 +88,7 @@ async function main() {
     .then(async (c: Contract) => {
       return await c.deployed()
     })
+  console.info('\taddress: ', factory.address)
   contractMap.set('UniswapV2Factory', {
     Address: factory.address,
     Source: fs.readFileSync('node_modules/@uniswap/v2-core/flatten/UniswapV2Factory.sol').toString('utf8'),
@@ -93,10 +96,34 @@ async function main() {
     ConstructorArguements: defaultAbiCoder.encode(['address'], [wallet.address]).substring(2)
   })
 
+  console.info('create WETH/USDT pair')
+  await factory
+    .createPair(env.WETH_TOKEN, env.USDT_TOKEN)
+    .then(async (tx: TransactionResponse) => {
+      return await tx.wait()
+    })
+    .then((receipt: any) => {
+      console.info('\tpair(WETH/USDT): ', receipt.events[0].args.pair)
+      contractMap.set('UniswapV2Pair', {
+        Address: receipt.events[0].args.pair,
+        Source: fs.readFileSync('node_modules/@uniswap/v2-core/flatten/UniswapV2Pair.sol').toString('utf8'),
+        MetaData: UniswapV2Pair.metadata,
+        ConstructorArguements: ''
+      })
+    })
+    .catch((err: Error) => {
+      console.info('\tfailed to approve token ${list[i]}: ', err)
+    })
+
   console.info(`setFeeTo: ${wallet.address}`)
-  await factory.setFeeTo(wallet.address).then(async (tx: TransactionResponse) => {
-    await tx.wait()
-  })
+  await factory
+    .setFeeTo(wallet.address)
+    .then(async (tx: TransactionResponse) => {
+      await tx.wait()
+    })
+    .catch((err: Error) => {
+      console.info('\tfailed to setFeeTo: ', err)
+    })
 
   console.info(`setApprovedTokenManager: ${approvedTokenManager.address}`)
   await factory
@@ -105,7 +132,7 @@ async function main() {
       await tx.wait()
     })
     .catch((err: Error) => {
-      console.info('failed to setApprovedTokenManager: ', err)
+      console.info('\tfailed to setApprovedTokenManager: ', err)
     })
 
   console.info('deploy UniswapV2Router02')
@@ -115,6 +142,7 @@ async function main() {
     .then(async (c: Contract) => {
       return await c.deployed()
     })
+  console.info('\taddress: ', router.address)
   contractMap.set('UniswapV2Router02', {
     Address: router.address,
     Source: fs.readFileSync('flatten/UniswapV2Router02.sol').toString('utf8'),
