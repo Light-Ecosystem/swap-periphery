@@ -1,8 +1,9 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { Wallet, Contract, ContractFactory } from 'ethers'
-import { TransactionResponse, JsonRpcProvider, TransactionReceipt } from 'ethers/providers'
-import { bigNumberify, BigNumber, defaultAbiCoder } from 'ethers/utils'
+import { TransactionResponse, JsonRpcProvider, TransactionReceipt } from '@ethersproject/providers'
+import { BigNumber } from '@ethersproject/bignumber'
+import { defaultAbiCoder } from '@ethersproject/abi'
 import UniswapV2Factory from '@uniswap/v2-core/build/UniswapV2Factory.json'
 import UniswapV2Pair from '@uniswap/v2-core/build/UniswapV2Pair.json'
 import IUniswapV2Pair from '@uniswap/v2-core/build/IUniswapV2Pair.json'
@@ -13,7 +14,7 @@ import UniswapV2Router02 from '../build/UniswapV2Router02.json'
 
 interface ContractInstance {
   Address: string
-  Source: string
+  SourceFile: string
   MetaData: string
   ConstructorArguements: string
 }
@@ -27,11 +28,11 @@ async function main() {
   const wallet = Wallet.fromMnemonic(env.MNEMONIC).connect(provider)
   console.info('address: ', wallet.address)
   await provider.getBalance(wallet.address).then((value: BigNumber) => {
-    console.info('ETH: ', value.div(bigNumberify(10).pow(15)).toNumber() / 1000)
+    console.info('ETH: ', value.div(BigNumber.from(10).pow(15)).toNumber() / 1000)
   })
 
   console.info('deploy ApprovedTokenManager')
-  const approvedTokenManager = await new ContractFactory(ApprovedTokenManager.interface, ApprovedTokenManager.bytecode)
+  const approvedTokenManager = await new ContractFactory(ApprovedTokenManager.abi, ApprovedTokenManager.bytecode)
     .connect(wallet)
     .deploy()
     .then(async (c: Contract) => {
@@ -40,49 +41,13 @@ async function main() {
   console.info('\taddress: ', approvedTokenManager.address)
   contractMap.set('ApprovedTokenManager', {
     Address: approvedTokenManager.address,
-    Source: fs.readFileSync('node_modules/@uniswap/v2-core/flatten/ApprovedTokenManager.sol').toString('utf8'),
+    SourceFile: 'node_modules/@uniswap/v2-core/flatten/ApprovedTokenManager.sol',
     MetaData: ApprovedTokenManager.metadata,
-    ConstructorArguements: defaultAbiCoder.encode([], []).substring(2)
+    ConstructorArguements: ''
   })
 
-  console.info('approve token')
-  {
-    let list = [
-      env.WETH_TOKEN,
-      env.HOPE_TOKEN,
-      env.USDT_TOKEN,
-      env.USDC_TOKEN,
-      env.DAI_TOKEN,
-      env.LT_TOKEN,
-      env.VELT_TOKEN
-    ]
-
-    for (let i = 0; i < list.length; i++) {
-      await approvedTokenManager
-        .approveToken(list[i], true)
-        .then(async (tx: TransactionResponse) => {
-          await tx.wait()
-        })
-        .catch((err: Error) => {
-          console.info('\tfailed to approve token ${list[i]}: ', err)
-        })
-      await approvedTokenManager
-        .isApprovedToken(list[i])
-        .then((success: boolean) => {
-          if (success) {
-            console.info(`\taddress: ${list[i]} `)
-          } else {
-            console.info(`\tfailed to approve token ${list[i]} `)
-          }
-        })
-        .catch((err: Error) => {
-          console.info(`\tfailed to fetch token approved status for ${list[i]}: `, err)
-        })
-    }
-  }
-
   console.info('deploy UniswapV2Factory')
-  const factory = await new ContractFactory(UniswapV2Factory.interface, UniswapV2Factory.bytecode)
+  const factory = await new ContractFactory(UniswapV2Factory.abi, UniswapV2Factory.bytecode)
     .connect(wallet)
     .deploy(wallet.address)
     .then(async (c: Contract) => {
@@ -91,7 +56,7 @@ async function main() {
   console.info('\taddress: ', factory.address)
   contractMap.set('UniswapV2Factory', {
     Address: factory.address,
-    Source: fs.readFileSync('node_modules/@uniswap/v2-core/flatten/UniswapV2Factory.sol').toString('utf8'),
+    SourceFile: 'node_modules/@uniswap/v2-core/flatten/UniswapV2Factory.sol',
     MetaData: UniswapV2Factory.metadata,
     ConstructorArguements: defaultAbiCoder.encode(['address'], [wallet.address]).substring(2)
   })
@@ -106,7 +71,7 @@ async function main() {
       console.info('\tpair(WETH/USDT): ', receipt.events[0].args.pair)
       contractMap.set('UniswapV2Pair', {
         Address: receipt.events[0].args.pair,
-        Source: fs.readFileSync('node_modules/@uniswap/v2-core/flatten/UniswapV2Pair.sol').toString('utf8'),
+        SourceFile: 'node_modules/@uniswap/v2-core/flatten/UniswapV2Pair.sol',
         MetaData: UniswapV2Pair.metadata,
         ConstructorArguements: ''
       })
@@ -117,7 +82,7 @@ async function main() {
 
   console.info(`setFeeTo: ${wallet.address}`)
   await factory
-    .setFeeTo(wallet.address)
+    .setFeeTo(env.FEETO_VAULT)
     .then(async (tx: TransactionResponse) => {
       await tx.wait()
     })
@@ -136,7 +101,7 @@ async function main() {
     })
 
   console.info('deploy UniswapV2Router02')
-  const router = await new ContractFactory(UniswapV2Router02.interface, UniswapV2Router02.bytecode)
+  const router = await new ContractFactory(UniswapV2Router02.abi, UniswapV2Router02.bytecode)
     .connect(wallet)
     .deploy(factory.address, env.WETH_TOKEN)
     .then(async (c: Contract) => {
@@ -145,13 +110,14 @@ async function main() {
   console.info('\taddress: ', router.address)
   contractMap.set('UniswapV2Router02', {
     Address: router.address,
-    Source: fs.readFileSync('flatten/UniswapV2Router02.sol').toString('utf8'),
+    SourceFile: 'flatten/UniswapV2Router02.sol',
     MetaData: UniswapV2Router02.metadata,
     ConstructorArguements: defaultAbiCoder
       .encode(['address', 'address'], [factory.address, env.WETH_TOKEN])
       .substring(2)
   })
 
+  console.info('==============================summary==============================')
   contractMap.forEach((value, key) => {
     console.info(key, ':', value.Address)
   })

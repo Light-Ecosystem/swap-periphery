@@ -20,7 +20,12 @@ async function verifySourceCode(
   sourceCode: string
 ) {
   let metadata = JSON.parse(metadataStr)
+
+  var myHeaders = new Headers()
+  myHeaders.append('Content-Type', 'application/x-www-form-urlencoded')
+
   let params = new URLSearchParams()
+  // https://docs.etherscan.io/tutorials/verifying-contracts-programmatically
   params.append('apikey', env.ETHERSCAN_APIKEY)
   params.append('module', 'contract')
   params.append('action', 'verifysourcecode')
@@ -31,21 +36,41 @@ async function verifySourceCode(
   params.append('constructorArguements', constructorArguements)
   params.append('compilerversion', 'v' + metadata.compiler.version)
   params.append('optimizationused', metadata.settings.optimizer.enabled ? '1' : '0')
-  params.append('runs', String(metadata.settings.optimizer.runs))
-  // params.append('licenseType', '7')
+  params.append('runs', metadata.settings.optimizer.runs.toString())
+  params.append('licenseType', '5')
   await fetch(env.ETHERSCAN_URL, {
     method: 'POST',
-    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    headers: myHeaders,
     body: params,
     redirect: 'follow'
   })
     .then(async response => {
       let json = await response.json()
-      if (json['status'] == 1) {
-        console.info(`contract at ${contractAddr} is verified`)
-      } else {
-        console.info(`failed to verify contract at ${contractAddr}: ${json.message}`)
+      if (json['status'] != 1) {
+        console.info(`failed to verify contract at ${contractAddr}: ${JSON.stringify(json)}`)
+        return
       }
+
+      await new Promise(resolve => setTimeout(resolve, 10000))
+      let params = new URLSearchParams()
+      // https://docs.etherscan.io/tutorials/verifying-contracts-programmatically
+      params.append('apikey', env.ETHERSCAN_APIKEY)
+      params.append('module', 'contract')
+      params.append('action', 'checkverifystatus')
+      params.append('guid', json['result'])
+      await fetch(env.ETHERSCAN_URL, {
+        method: 'POST',
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+        body: params,
+        redirect: 'follow'
+      }).then(async response => {
+        let json = await response.json()
+        if (json['status'] != 1) {
+          console.info(`failed to verify contract at ${contractAddr}: ${JSON.stringify(json)}`)
+          return
+        }
+        console.info(`succeeded to verify contract at ${contractAddr}: ${json.result}`)
+      })
     })
     .catch(err => {
       console.info(`failed to verify contract at ${contractAddr}: ${err}`)
@@ -58,12 +83,13 @@ async function main() {
   let contractMap = JSON.parse(rawdata.toString())
 
   Object.keys(contractMap).forEach(async key => {
+    var sourceCode = fs.readFileSync(contractMap[key].SourceFile).toString('utf-8')
     await verifySourceCode(
       contractMap[key].Address,
       key,
       contractMap[key].ConstructorArguements,
       ApprovedTokenManager.metadata,
-      contractMap[key].Source
+      sourceCode
     )
     await new Promise(resolve => setTimeout(resolve, 1000))
   })
