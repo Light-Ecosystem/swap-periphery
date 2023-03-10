@@ -1,8 +1,7 @@
 import * as fs from 'fs'
 import * as env from '../.env'
 import { ethers } from 'ethers'
-import UniswapV2Factory from '@uniswap/v2-core/build/UniswapV2Factory.json'
-import IUniswapV2Pair from '@uniswap/v2-core/build/IUniswapV2Pair.json'
+
 import ApprovedTokenManager from '@uniswap/v2-core/build/ApprovedTokenManager.json'
 
 interface ContractInstance {
@@ -26,7 +25,7 @@ async function verifySourceCode(
 
   let params = new URLSearchParams()
   // https://docs.etherscan.io/tutorials/verifying-contracts-programmatically
-  params.append('apikey', env.ETHERSCAN_APIKEY)
+  params.append('apikey', env.ETHERSCAN_API_KEY)
   params.append('module', 'contract')
   params.append('action', 'verifysourcecode')
   params.append('contractaddress', contractAddr)
@@ -54,7 +53,7 @@ async function verifySourceCode(
       await new Promise(resolve => setTimeout(resolve, 10000))
       let params = new URLSearchParams()
       // https://docs.etherscan.io/tutorials/verifying-contracts-programmatically
-      params.append('apikey', env.ETHERSCAN_APIKEY)
+      params.append('apikey', env.ETHERSCAN_API_KEY)
       params.append('module', 'contract')
       params.append('action', 'checkverifystatus')
       params.append('guid', json['result'])

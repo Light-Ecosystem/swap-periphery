@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import { Wallet, Contract, ContractFactory } from 'ethers'
+import {Wallet, Contract, ContractFactory, ethers} from 'ethers'
 import { TransactionResponse, JsonRpcProvider, TransactionReceipt } from '@ethersproject/providers'
 import { BigNumber } from '@ethersproject/bignumber'
 import { defaultAbiCoder } from '@ethersproject/abi'
@@ -21,11 +21,10 @@ interface ContractInstance {
 async function main() {
   let contractMap = new Map<string, ContractInstance>()
 
-  // provider
-  const provider = new JsonRpcProvider(env.WEB3_URL)
-
   // wallet
-  const wallet = Wallet.fromMnemonic(env.MNEMONIC).connect(provider)
+  const provider = new ethers.providers.JsonRpcProvider(env.WEB3_URL)
+  const wallet = new ethers.Wallet(env.WALLET_KEY, provider)
+
   console.info('address: ', wallet.address)
   await provider.getBalance(wallet.address).then((value: BigNumber) => {
     console.info('ETH: ', value.div(BigNumber.from(10).pow(15)).toNumber() / 1000)
