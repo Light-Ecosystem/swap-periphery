@@ -1,7 +1,7 @@
 import chai, { expect } from 'chai'
 import { Contract } from 'ethers'
-import { AddressZero, MaxUint256 } from 'ethers/constants'
-import { bigNumberify } from 'ethers/utils'
+import { AddressZero, MaxUint256 } from '@ethersproject/constants'
+import { BigNumber } from '@ethersproject/bignumber'
 import { solidity, MockProvider, createFixtureLoader } from 'ethereum-waffle'
 
 import { v2Fixture } from './shared/fixtures'
@@ -15,12 +15,21 @@ const overrides = {
 
 describe('UniswapV2Migrator', () => {
   const provider = new MockProvider({
-    hardfork: 'istanbul',
-    mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn',
-    gasLimit: 9999999
+    ganacheOptions: {
+      chain: {
+        hardfork: 'istanbul',
+        chainId: 1
+      },
+      wallet: {
+        mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn'
+      },
+      miner: {
+        blockGasLimit: 9999999
+      }
+    }
   })
   const [wallet] = provider.getWallets()
-  const loadFixture = createFixtureLoader(provider, [wallet])
+  const loadFixture = createFixtureLoader([wallet], provider)
 
   let WETHPartner: Contract
   let WETHPair: Contract
@@ -40,7 +49,7 @@ describe('UniswapV2Migrator', () => {
     const WETHPartnerAmount = expandTo18Decimals(1)
     const ETHAmount = expandTo18Decimals(4)
     await WETHPartner.approve(WETHExchangeV1.address, MaxUint256)
-    await WETHExchangeV1.addLiquidity(bigNumberify(1), WETHPartnerAmount, MaxUint256, {
+    await WETHExchangeV1.addLiquidity(BigNumber.from(1), WETHPartnerAmount, MaxUint256, {
       ...overrides,
       value: ETHAmount
     })

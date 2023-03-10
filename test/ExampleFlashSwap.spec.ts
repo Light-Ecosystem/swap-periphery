@@ -1,7 +1,9 @@
 import chai, { expect } from 'chai'
 import { Contract } from 'ethers'
-import { MaxUint256 } from 'ethers/constants'
-import { BigNumber, bigNumberify, defaultAbiCoder, formatEther } from 'ethers/utils'
+import { MaxUint256 } from '@ethersproject/constants'
+import { defaultAbiCoder } from '@ethersproject/abi'
+import { formatEther } from '@ethersproject/units'
+import { BigNumber } from '@ethersproject/bignumber'
 import { solidity, MockProvider, createFixtureLoader, deployContract } from 'ethereum-waffle'
 
 import { expandTo18Decimals } from './shared/utilities'
@@ -18,12 +20,21 @@ const overrides = {
 
 describe('ExampleFlashSwap', () => {
   const provider = new MockProvider({
-    hardfork: 'istanbul',
-    mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn',
-    gasLimit: 9999999
+    ganacheOptions: {
+      chain: {
+        hardfork: 'istanbul',
+        chainId: 1
+      },
+      wallet: {
+        mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn'
+      },
+      miner: {
+        blockGasLimit: 9999999
+      }
+    }
   })
   const [wallet] = provider.getWallets()
-  const loadFixture = createFixtureLoader(provider, [wallet])
+  const loadFixture = createFixtureLoader([wallet], provider)
 
   let WETH: Contract
   let WETHPartner: Contract
@@ -50,7 +61,7 @@ describe('ExampleFlashSwap', () => {
     const WETHPartnerAmountV1 = expandTo18Decimals(2000)
     const ETHAmountV1 = expandTo18Decimals(10)
     await WETHPartner.approve(WETHExchangeV1.address, WETHPartnerAmountV1)
-    await WETHExchangeV1.addLiquidity(bigNumberify(1), WETHPartnerAmountV1, MaxUint256, {
+    await WETHExchangeV1.addLiquidity(BigNumber.from(1), WETHPartnerAmountV1, MaxUint256, {
       ...overrides,
       value: ETHAmountV1
     })
@@ -72,13 +83,13 @@ describe('ExampleFlashSwap', () => {
     // better, but it'd be better yet to calculate the amount at runtime, on-chain. unfortunately, this requires a
     // swap-to-price calculation, which is a little tricky, and out of scope for the moment
     const WETHPairToken0 = await WETHPair.token0()
-    const amount0 = WETHPairToken0 === WETHPartner.address ? bigNumberify(0) : arbitrageAmount
-    const amount1 = WETHPairToken0 === WETHPartner.address ? arbitrageAmount : bigNumberify(0)
+    const amount0 = WETHPairToken0 === WETHPartner.address ? BigNumber.from(0) : arbitrageAmount
+    const amount1 = WETHPairToken0 === WETHPartner.address ? arbitrageAmount : BigNumber.from(0)
     await WETHPair.swap(
       amount0,
       amount1,
       flashSwapExample.address,
-      defaultAbiCoder.encode(['uint'], [bigNumberify(1)]),
+      defaultAbiCoder.encode(['uint'], [BigNumber.from(1)]),
       overrides
     )
 
@@ -103,7 +114,7 @@ describe('ExampleFlashSwap', () => {
     const WETHPartnerAmountV1 = expandTo18Decimals(1000)
     const ETHAmountV1 = expandTo18Decimals(10)
     await WETHPartner.approve(WETHExchangeV1.address, WETHPartnerAmountV1)
-    await WETHExchangeV1.addLiquidity(bigNumberify(1), WETHPartnerAmountV1, MaxUint256, {
+    await WETHExchangeV1.addLiquidity(BigNumber.from(1), WETHPartnerAmountV1, MaxUint256, {
       ...overrides,
       value: ETHAmountV1
     })
@@ -125,13 +136,13 @@ describe('ExampleFlashSwap', () => {
     // better, but it'd be better yet to calculate the amount at runtime, on-chain. unfortunately, this requires a
     // swap-to-price calculation, which is a little tricky, and out of scope for the moment
     const WETHPairToken0 = await WETHPair.token0()
-    const amount0 = WETHPairToken0 === WETHPartner.address ? arbitrageAmount : bigNumberify(0)
-    const amount1 = WETHPairToken0 === WETHPartner.address ? bigNumberify(0) : arbitrageAmount
+    const amount0 = WETHPairToken0 === WETHPartner.address ? arbitrageAmount : BigNumber.from(0)
+    const amount1 = WETHPairToken0 === WETHPartner.address ? BigNumber.from(0) : arbitrageAmount
     await WETHPair.swap(
       amount0,
       amount1,
       flashSwapExample.address,
-      defaultAbiCoder.encode(['uint'], [bigNumberify(1)]),
+      defaultAbiCoder.encode(['uint'], [BigNumber.from(1)]),
       overrides
     )
 

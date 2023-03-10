@@ -1,7 +1,6 @@
 import chai, { expect } from 'chai'
 import { Contract } from 'ethers'
-import { Zero, MaxUint256 } from 'ethers/constants'
-import { bigNumberify } from 'ethers/utils'
+import { Zero, MaxUint256 } from '@ethersproject/constants'
 import { FixedNumber, BigNumber } from '@ethersproject/bignumber'
 import { solidity, MockProvider, createFixtureLoader } from 'ethereum-waffle'
 
@@ -102,12 +101,21 @@ function removePairListener(pair: Contract) {
 describe('WalkThrough', () => {
   for (const routerVersion of Object.keys(RouterVersion)) {
     const provider = new MockProvider({
-      hardfork: 'istanbul',
-      mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn',
-      gasLimit: 9999999
+      ganacheOptions: {
+        chain: {
+          hardfork: 'istanbul',
+          chainId: 1
+        },
+        wallet: {
+          mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn'
+        },
+        miner: {
+          blockGasLimit: 9999999
+        }
+      }
     })
     const [wallet, feeTo, lisa, lily, tim] = provider.getWallets()
-    const loadFixture = createFixtureLoader(provider, [wallet])
+    const loadFixture = createFixtureLoader([wallet], provider)
 
     let tokenA: Contract
     let tokenB: Contract

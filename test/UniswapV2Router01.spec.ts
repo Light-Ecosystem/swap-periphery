@@ -1,7 +1,7 @@
 import chai, { expect } from 'chai'
 import { Contract } from 'ethers'
-import { AddressZero, Zero, MaxUint256 } from 'ethers/constants'
-import { BigNumber, bigNumberify } from 'ethers/utils'
+import { AddressZero, Zero, MaxUint256 } from '@ethersproject/constants'
+import { BigNumber } from '@ethersproject/bignumber'
 import { solidity, MockProvider, createFixtureLoader } from 'ethereum-waffle'
 import { ecsign } from 'ethereumjs-util'
 
@@ -22,12 +22,21 @@ enum RouterVersion {
 describe('UniswapV2Router{01,02}', () => {
   for (const routerVersion of Object.keys(RouterVersion)) {
     const provider = new MockProvider({
-      hardfork: 'istanbul',
-      mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn',
-      gasLimit: 9999999
+      ganacheOptions: {
+        chain: {
+          hardfork: 'istanbul',
+          chainId: 1
+        },
+        wallet: {
+          mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn'
+        },
+        miner: {
+          blockGasLimit: 9999999
+        }
+      }
     })
     const [wallet] = provider.getWallets()
-    const loadFixture = createFixtureLoader(provider, [wallet])
+    const loadFixture = createFixtureLoader([wallet], provider)
 
     let token0: Contract
     let token1: Contract
@@ -305,7 +314,7 @@ describe('UniswapV2Router{01,02}', () => {
         const token0Amount = expandTo18Decimals(5)
         const token1Amount = expandTo18Decimals(10)
         const swapAmount = expandTo18Decimals(1)
-        const expectedOutputAmount = bigNumberify('1662497915624478906')
+        const expectedOutputAmount = BigNumber.from('1662497915624478906')
 
         beforeEach(async () => {
           await addLiquidity(token0Amount, token1Amount)
@@ -378,7 +387,7 @@ describe('UniswapV2Router{01,02}', () => {
       describe('swapTokensForExactTokens', () => {
         const token0Amount = expandTo18Decimals(5)
         const token1Amount = expandTo18Decimals(10)
-        const expectedSwapAmount = bigNumberify('557227237267357629')
+        const expectedSwapAmount = BigNumber.from('557227237267357629')
         const outputAmount = expandTo18Decimals(1)
 
         beforeEach(async () => {
@@ -429,7 +438,7 @@ describe('UniswapV2Router{01,02}', () => {
         const WETHPartnerAmount = expandTo18Decimals(10)
         const ETHAmount = expandTo18Decimals(5)
         const swapAmount = expandTo18Decimals(1)
-        const expectedOutputAmount = bigNumberify('1662497915624478906')
+        const expectedOutputAmount = BigNumber.from('1662497915624478906')
 
         beforeEach(async () => {
           await WETHPartner.transfer(WETHPair.address, WETHPartnerAmount)
@@ -517,8 +526,8 @@ describe('UniswapV2Router{01,02}', () => {
           const receipt = await tx.wait()
           expect(receipt.gasUsed).to.eq(
             {
-              [RouterVersion.UniswapV2Router01]: 143961,
-              [RouterVersion.UniswapV2Router02]: 143961
+              [RouterVersion.UniswapV2Router01]: 143857,
+              [RouterVersion.UniswapV2Router02]: 143857
             }[routerVersion as RouterVersion]
           )
         }).retries(3)
@@ -527,7 +536,7 @@ describe('UniswapV2Router{01,02}', () => {
       describe('swapTokensForExactETH', () => {
         const WETHPartnerAmount = expandTo18Decimals(5)
         const ETHAmount = expandTo18Decimals(10)
-        const expectedSwapAmount = bigNumberify('557227237267357629')
+        const expectedSwapAmount = BigNumber.from('557227237267357629')
         const outputAmount = expandTo18Decimals(1)
 
         beforeEach(async () => {
@@ -596,7 +605,7 @@ describe('UniswapV2Router{01,02}', () => {
         const WETHPartnerAmount = expandTo18Decimals(5)
         const ETHAmount = expandTo18Decimals(10)
         const swapAmount = expandTo18Decimals(1)
-        const expectedOutputAmount = bigNumberify('1662497915624478906')
+        const expectedOutputAmount = BigNumber.from('1662497915624478906')
 
         beforeEach(async () => {
           await WETHPartner.transfer(WETHPair.address, WETHPartnerAmount)
@@ -663,7 +672,7 @@ describe('UniswapV2Router{01,02}', () => {
       describe('swapETHForExactTokens', () => {
         const WETHPartnerAmount = expandTo18Decimals(10)
         const ETHAmount = expandTo18Decimals(5)
-        const expectedSwapAmount = bigNumberify('557227237267357629')
+        const expectedSwapAmount = BigNumber.from('557227237267357629')
         const outputAmount = expandTo18Decimals(1)
 
         beforeEach(async () => {
