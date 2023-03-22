@@ -13,7 +13,7 @@ async function main() {
     const provider = new ethers.providers.JsonRpcProvider(env.WEB3_URL)
     const wallet = new ethers.Wallet(env.WALLET_KEY, provider)
 
-    const factory = await new ethers.ContractFactory(UniswapV2Factory.interface, UniswapV2Factory.bytecode)
+    const factory = await new ethers.ContractFactory(UniswapV2Factory.abi, UniswapV2Factory.bytecode)
         .connect(wallet)
         .attach(uniswapV2Factory);
 

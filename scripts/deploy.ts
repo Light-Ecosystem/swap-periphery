@@ -60,24 +60,24 @@ async function main() {
     ConstructorArguements: defaultAbiCoder.encode(['address'], [wallet.address]).substring(2)
   })
 
-  console.info('create WETH/USDT pair')
-  await factory
-    .createPair(env.WETH_TOKEN, env.USDT_TOKEN)
-    .then(async (tx: TransactionResponse) => {
-      return await tx.wait()
-    })
-    .then((receipt: any) => {
-      console.info('\tpair(WETH/USDT): ', receipt.events[0].args.pair)
-      contractMap.set('UniswapV2Pair', {
-        Address: receipt.events[0].args.pair,
-        SourceFile: 'node_modules/@uniswap/v2-core/flatten/UniswapV2Pair.sol',
-        MetaData: UniswapV2Pair.metadata,
-        ConstructorArguements: ''
-      })
-    })
-    .catch((err: Error) => {
-      console.info('\tfailed to approve token ${list[i]}: ', err)
-    })
+  // console.info('create WETH/USDT pair')
+  // await factory
+  //   .createPair(env.WETH_TOKEN, env.USDT_TOKEN)
+  //   .then(async (tx: TransactionResponse) => {
+  //     return await tx.wait()
+  //   })
+  //   .then((receipt: any) => {
+  //     console.info('\tpair(WETH/USDT): ', receipt.events[0].args.pair)
+  //     contractMap.set('UniswapV2Pair', {
+  //       Address: receipt.events[0].args.pair,
+  //       SourceFile: 'node_modules/@uniswap/v2-core/flatten/UniswapV2Pair.sol',
+  //       MetaData: UniswapV2Pair.metadata,
+  //       ConstructorArguements: ''
+  //     })
+  //   })
+  //   .catch((err: Error) => {
+  //     console.info('\tfailed to approve token ${list[i]}: ', err)
+  //   })
 
   console.info(`setFeeTo: ${wallet.address}`)
   await factory
