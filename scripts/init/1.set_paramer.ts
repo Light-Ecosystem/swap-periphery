@@ -4,7 +4,7 @@ import * as env from "../../.env";
 
 async function main() {
 
-    // todo
+    // TODO:
     let uniswapV2Factory = "0x00";
     let _stHope = "0x01";
     let _minter = "0x02";
